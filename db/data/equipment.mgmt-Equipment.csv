@@ -1,0 +1,9 @@
+ID,description,type_code,manufacturer,model,serialNumber,installationDate,location,responsiblePerson,status,criticality,retirementReason,retiredAt
+11111111-0000-0000-0000-000000000001,Cooling water pump,PUMP,Grundfos,CR 32-4,SN-PUMP-0001,,,,NEW,MEDIUM,,
+11111111-0000-0000-0000-000000000002,Feed pump line 2,PUMP,KSB,Etanorm 50,SN-PUMP-0002,2025-03-10,Hall A,Anna Schmidt,INSTALLED,HIGH,,
+11111111-0000-0000-0000-000000000003,Main drive motor,MOTOR,Siemens,1LE1 160,SN-MOT-0003,2024-06-01,Hall B,Peter Müller,IN_OPERATION,HIGH,,
+11111111-0000-0000-0000-000000000004,Pressure sensor P-101,SENSOR,Endress+Hauser,Cerabar PMC51,SN-SEN-0004,2024-09-15,Hall A,Anna Schmidt,IN_OPERATION,LOW,,
+11111111-0000-0000-0000-000000000005,Air compressor,COMPRSR,Atlas Copco,GA 30,SN-CMP-0005,2023-11-20,Utility Room,Jonas Weber,MAINTENANCE,MEDIUM,,
+11111111-0000-0000-0000-000000000006,Inlet valve V-12,VALVE,Samson,3241,,2024-01-12,Hall C,Maria Keller,IN_OPERATION,MEDIUM,,
+11111111-0000-0000-0000-000000000007,Spare motor,MOTOR,ABB,M3BP 132,SN-MOT-0007,2022-05-05,Warehouse,Peter Müller,MAINTENANCE,LOW,,
+11111111-0000-0000-0000-000000000008,Old boiler pump,PUMP,Wilo,IL 80,SN-PUMP-0008,2019-02-02,Hall B,Jonas Weber,RETIRED,HIGH,End of service life - repeated seal failures,2025-10-01T08:00:00Z

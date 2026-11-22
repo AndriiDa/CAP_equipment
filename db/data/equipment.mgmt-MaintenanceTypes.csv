@@ -1,0 +1,5 @@
+code,name,descr
+INSPECTION,Inspection,Routine inspection
+REPAIR,Repair,Repair of a defect
+SERVICE,Service,Scheduled service
+CALIBRATION,Calibration,Calibration of instruments

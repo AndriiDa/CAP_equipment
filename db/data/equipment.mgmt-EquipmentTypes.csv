@@ -1,0 +1,6 @@
+code,name,descr,serialized
+PUMP,Pump,Centrifugal and displacement pumps,true
+MOTOR,Motor,Electric motors,true
+SENSOR,Sensor,Measurement sensors,true
+COMPRSR,Compressor,Air and gas compressors,true
+VALVE,Valve,Process valves,false

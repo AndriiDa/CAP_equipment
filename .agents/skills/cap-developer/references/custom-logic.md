@@ -1,0 +1,38 @@
+# Programmatic custom logic — event handlers
+
+Read this file only when declarative annotations (`declarative.md`) aren't enough. Custom
+handlers are for custom action/function implementations, side effects, external calls, and
+validation whose required event boundary is not covered by available annotations or generic handlers.
+
+## When a handler is justified
+
+Reach for a handler only when you can name the specific reason no annotation fits — e.g. the check
+needs an external call, arbitrary async work, or an action-specific precondition. A DB lookup
+alone is not a reason: `@assert` supports association paths and `exists` over related rows.
+Check whether the declarative rule is evaluated on every required write path and at the right
+event boundary. Most input-validation rules can stay declarative (see `declarative.md`).
+
+Two rules hold for both runtimes:
+
+- Don't write handlers for things the generic service provider already handles.
+- Rely on CAP's intrinsic transaction handling — no manual transactions.
+
+Constraints and handlers can be mixed: even when writing a custom handler, don't do all checks
+there — keep declarative what can stay declarative.
+
+## The three phases (runtime-agnostic)
+
+- **before** — input validation that can't be expressed declaratively; reject early before DB writes.
+- **on** — custom actions and functions.
+- **after** — side effects like emitting async events.
+
+## Runtime references
+
+The handler API differs substantially between runtimes. Read the matching reference for full
+guidance:
+
+- `nodejs.md` — `srv.before` / `srv.on` / `srv.after`, `req.reject(code, message)`,
+  intrinsic transactions, the round-trip-minimization pattern.
+- `java.md` — `@Before` / `@On` / `@After` with reflection-based event/entity
+  detection, typed `CdsResult<D>` vs untyped `Result`, `ServiceException` vs `messages.error`,
+  the race-condition-safe `.set(field, expr)` update pattern, and more.
