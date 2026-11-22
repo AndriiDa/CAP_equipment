@@ -11,7 +11,7 @@ entity Equipment : cuid, managed {
   installationDate : Date;
   location         : String(40);
   responsiblePerson: String(80);
-  status           : String(20) default 'NEW';
+  status           : String(20) ;
   criticality      : String(10) default 'MEDIUM';
   retirementReason : String(255);
   retiredAt        : Timestamp;

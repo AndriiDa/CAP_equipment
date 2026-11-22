@@ -37,15 +37,26 @@ export default class EquipmentService extends cds.ApplicationService {
       req.data.status = 'NEW'
     })
 
-    // Validation validateSerialNumber (rule 2): serialized types need a serial number
+    // Validations on save: rule 2 (validateSerialNumber) and rule 3 (validateInstallation)
     this.before(['CREATE', 'UPDATE'], Equipment, async req => {
-      const existing = req.event === 'UPDATE' ? await SELECT.one.from(Equipment, req.data.ID).columns('type_code', 'serialNumber') : {}
-      const typeCode = 'type_code' in req.data ? req.data.type_code : existing?.type_code
-      const serialNumber = 'serialNumber' in req.data ? req.data.serialNumber : existing?.serialNumber
-      if (!typeCode || serialNumber?.trim()) return
-      const type = await SELECT.one.from(EquipmentTypes).where({ code: typeCode }).columns('serialized')
-      if (type?.serialized) {
-        req.error({ status: 400, message: 'SERIAL_NUMBER_REQUIRED', target: 'serialNumber' })
+      const existing = req.event === 'UPDATE'
+        ? await SELECT.one.from(Equipment, req.data.ID).columns('status', 'type_code', 'serialNumber', ...Object.keys(INSTALLATION_FIELDS))
+        : {}
+      const valueOf = field => (field in req.data ? req.data[field] : existing?.[field])
+
+      // Rule 3: once the status is past NEW, installation fields must not be empty.
+      // On CREATE the status is NEW, so nothing to check.
+      if (existing?.status && existing.status !== 'NEW') {
+        for (const [field, message] of Object.entries(INSTALLATION_FIELDS)) {
+          if (!valueOf(field)?.toString().trim()) req.error({ status: 400, message, target: field })
+        }
+      }
+
+      // Rule 2: serialized types need a serial number
+      const typeCode = valueOf('type_code')
+      if (typeCode && !valueOf('serialNumber')?.trim()) {
+        const type = await SELECT.one.from(EquipmentTypes).where({ code: typeCode }).columns('serialized')
+        if (type?.serialized) req.error({ status: 400, message: 'SERIAL_NUMBER_REQUIRED', target: 'serialNumber' })
       }
     })
 
@@ -97,7 +108,8 @@ export default class EquipmentService extends cds.ApplicationService {
     this.on('checkInstallation', Equipment, async req => {
       const row = await SELECT.one.from(req.subject).columns(...Object.keys(INSTALLATION_FIELDS))
       if (!row) return req.reject({ status: 404, message: 'EQUIPMENT_NOT_FOUND' })
-      return Object.keys(INSTALLATION_FIELDS).filter(field => !row[field])
+      const missing = Object.keys(INSTALLATION_FIELDS).filter(field => !row[field])
+      return { isComplete: missing.length === 0, missingFields: missing.join(' ') }
     })
 
     this.on('install', Equipment, req => changeStatus(req, 'install'))

@@ -24,8 +24,8 @@ service EquipmentService @(path: '/odata/v4/equipment') {
     @Common.SideEffects: { TargetProperties: [ 'in/status', 'in/statusCriticality', 'in/retirementReason', 'in/retiredAt' ] }
     action retire(reason : String(255));
 
-    // read-only: names of the installation fields that are still empty
-    function checkInstallation() returns array of String;
+    // read-only: missingFields = space-separated names of the installation fields that are still empty
+    function checkInstallation() returns { isComplete : Boolean; missingFields : String };
   };
 
   entity MaintenanceLogs as projection on db.MaintenanceLogs;

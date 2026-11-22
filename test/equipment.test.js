@@ -52,6 +52,20 @@ describe('Determination', () => {
   })
 })
 
+describe('Default criticality', () => {
+  test('new equipment without criticality gets MEDIUM', async () => {
+    const { id, res } = await createEquipment({ description: 'Default crit', type_code: 'VALVE' })
+    assert.equal(res.status, 201)
+    assert.equal((await GET(eq(id))).data.criticality, 'MEDIUM')
+  })
+
+  test('new equipment with HIGH keeps HIGH', async () => {
+    const { id, res } = await createEquipment({ description: 'High crit', type_code: 'VALVE', criticality: 'HIGH' })
+    assert.equal(res.status, 201)
+    assert.equal((await GET(eq(id))).data.criticality, 'HIGH')
+  })
+})
+
 describe('Validation: serial number (rule 2)', () => {
   test('serialized type without serial number is rejected (400, target serialNumber)', async () => {
     const { res } = await createEquipment({ description: 'Pump', type_code: 'PUMP' })
@@ -93,6 +107,27 @@ describe('Action install (rule 3)', () => {
     const res = await action(SEED.INSTALLED, 'install')
     assert.equal(res.status, 409)
     assert.equal(res.data.error.message, 'Action install is not allowed in status INSTALLED.')
+  })
+})
+
+describe('Validation: installation data on save (rule 3)', () => {
+  test('clearing location on an IN_OPERATION equipment fails (400, target location)', async () => {
+    const res = await editEquipment(SEED.IN_OPERATION, { location: '' })
+    assert.equal(res.status, 400, JSON.stringify(res.data))
+    assert.equal(res.data.error.message, 'Location is required for installation.')
+    assert.equal(res.data.error.target, 'location')
+    const { data: row } = await GET(eq(SEED.IN_OPERATION))
+    assert.ok(row.location)
+  })
+
+  test('editing the description of an IN_OPERATION equipment still works', async () => {
+    const res = await editEquipment(SEED.IN_OPERATION, { description: 'Renamed' })
+    assert.equal(res.status, 200, JSON.stringify(res.data))
+  })
+
+  test('clearing location on a NEW equipment is allowed', async () => {
+    const res = await editEquipment(SEED.NEW, { location: '' })
+    assert.equal(res.status, 200, JSON.stringify(res.data))
   })
 })
 
@@ -173,14 +208,16 @@ describe('Function checkInstallation', () => {
   test('returns the missing installation fields and does not change data', async () => {
     const res = await GET(`${eq(SEED.NEW)}/EquipmentService.checkInstallation()`)
     assert.equal(res.status, 200)
-    assert.deepEqual(res.data.value.sort(), ['installationDate', 'location', 'responsiblePerson'])
+    assert.equal(res.data.isComplete, false)
+    assert.equal(res.data.missingFields, 'installationDate location responsiblePerson')
     assert.equal(await statusOf(SEED.NEW), 'NEW')
   })
 
-  test('returns an empty list when installation data is complete', async () => {
+  test('returns isComplete true and no missing fields when installation data is complete', async () => {
     const res = await GET(`${eq(SEED.INSTALLED)}/EquipmentService.checkInstallation()`)
     assert.equal(res.status, 200)
-    assert.deepEqual(res.data.value, [])
+    assert.equal(res.data.isComplete, true)
+    assert.equal(res.data.missingFields, '')
   })
 })
 
